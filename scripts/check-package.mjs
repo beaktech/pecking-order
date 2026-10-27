@@ -64,7 +64,8 @@ try {
   const paths = new Set(packed.files.map(file => file.path))
   for (const required of ['LICENSE', 'README.md', 'src/cli.js', 'public/index.html', 'docs/screenshot.png', 'docs/birdnet-pi-windows.md', 'config/station.example.json', 'config/birdnet-pi.example.json']) assert.ok(paths.has(required), required)
   for (const path of paths) assert.match(path, /^(?:src\/[^/]+\.js|public\/[^/]+\.(?:html|css|js)|config\/(?:station|birdnet-pi)\.example\.json|docs\/(?:screenshot\.png|birdnet-pi-windows\.md)|package\.json|README\.md|CHANGELOG\.md|LICENSE)$/)
-  assert.ok(packed.files.find(file => file.path === 'src/cli.js').mode & 0o111, 'CLI must be executable')
+  // Windows has no executable bit to pack; npm exec below still proves the bin runs there.
+  if (process.platform !== 'win32') assert.ok(packed.files.find(file => file.path === 'src/cli.js').mode & 0o111, 'CLI must be executable')
   const tarball = join(root, packed.filename)
   const installs = []
   // npm exec is the implementation behind npx. Exercise its real package/bin
