@@ -1,0 +1,44 @@
+{
+  "name": "pecking-order",
+  "version": "0.1.0",
+  "files": [
+    "src/*.js",
+    "public/*.html",
+    "public/*.css",
+    "public/*.js",
+    "config/*.example.json",
+    "CHANGELOG.md",
+    "docs/screenshot.png",
+    "docs/birdnet-pi-windows.md"
+  ],
+  "type": "module",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "bin": {
+    "pecking-order": "src/cli.js"
+  },
+  "scripts": {
+    "start": "node src/cli.js",
+    "test": "node --test",
+    "test:package": "node scripts/check-package.mjs"
+  },
+  "description": "Review BirdNET-Go and BirdNET-Pi recordings and prepare selections for Xeno-canto.",
+  "license": "MIT",
+  "author": "Beak Tech Community Interest Company",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/beaktech/pecking-order.git"
+  },
+  "homepage": "https://github.com/beaktech/pecking-order#readme",
+  "bugs": {
+    "url": "https://github.com/beaktech/pecking-order/issues"
+  },
+  "keywords": [
+    "birdnet",
+    "birdnet-go",
+    "birdnet-pi",
+    "birdsong",
+    "xeno-canto"
+  ]
+}

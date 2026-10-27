@@ -1,0 +1,19 @@
+{
+  "source": "birdnet-pi",
+  "archiveRoot": "",
+  "sourceTimezone": "",
+  "stationConfigPath": "",
+  "labelsPath": "",
+  "timezone": "",
+  "country": "",
+  "station": {
+    "name": "My station",
+    "location": "",
+    "latitude": "",
+    "longitude": "",
+    "elevation": "",
+    "device": "",
+    "microphone": ""
+  },
+  "databasePath": ""
+}

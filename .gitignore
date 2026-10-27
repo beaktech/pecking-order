@@ -1,0 +1,33 @@
+.DS_Store
+data/
+exports/
+
+# Station settings, copied metadata and developer-local tracking.
+config/*.local.*
+.subroutine
+.env
+.env.*
+!.env.example
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
+BirdDB.txt
+
+# Keep source recordings out of version control; tests generate their own audio.
+*.[wW][aA][vV]
+*.[fF][lL][aA][cC]
+*.[mM][pP]3
+*.[mM]4[aA]
+*.[oO][pP][uU][sS]
+*.[oO][gG][gG]
+recordings/
+clips/
+BirdSongs/
+By_Date/
+
+# Local dependencies and package archives.
+node_modules/
+*.tgz

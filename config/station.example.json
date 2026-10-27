@@ -1,0 +1,18 @@
+{
+  "source": "birdnet-go",
+  "archiveRoot": "",
+  "sourceTimezone": "",
+  "stationConfigPath": "",
+  "labelsPath": "",
+  "timezone": "",
+  "country": "",
+  "station": {
+    "name": "My station",
+    "location": "",
+    "latitude": "",
+    "longitude": "",
+    "elevation": "",
+    "device": "",
+    "microphone": ""
+  }
+}

@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pecking Order</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">By Beak Tech</p>
+      <h1>Pecking Order</h1>
+    </div>
+    <div class="top-actions">
+      <span id="archiveStatus" class="archive-status">Indexing archive</span>
+      <button id="rescanButton" class="button secondary" type="button">Rescan</button>
+      <button id="exportButton" class="button primary" type="button">Export kept</button>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <aside class="filters">
+      <form id="searchForm">
+        <div class="filter-heading">
+          <h2>Search</h2>
+          <span id="speciesTotal" class="count"></span>
+        </div>
+
+        <label for="speciesInput">Species</label>
+        <input id="speciesInput" name="speciesName" list="speciesList" autocomplete="off" placeholder="Common or scientific name" required>
+        <datalist id="speciesList"></datalist>
+
+        <div class="date-grid">
+          <div>
+            <label for="fromInput">From</label>
+            <input id="fromInput" name="from" type="date">
+          </div>
+          <div>
+            <label for="toInput">To</label>
+            <input id="toInput" name="to" type="date">
+          </div>
+        </div>
+
+        <div class="range-label">
+          <label for="confidenceInput">Minimum confidence</label>
+          <output id="confidenceOutput">80%</output>
+        </div>
+        <input id="confidenceInput" name="minConfidence" type="range" min="50" max="100" value="80" step="1">
+
+        <label for="limitSelect">Shortlist size</label>
+        <select id="limitSelect" name="limit">
+          <option value="12">12 recordings</option>
+          <option value="24" selected>24 recordings</option>
+          <option value="40">40 recordings</option>
+          <option value="60">60 recordings</option>
+        </select>
+
+        <button class="button primary search-button" type="submit">Find recordings</button>
+      </form>
+
+      <section class="review-summary" aria-labelledby="reviewHeading">
+        <h2 id="reviewHeading">Review queue</h2>
+        <dl>
+          <div><dt>Kept</dt><dd id="keptCount">0</dd></div>
+          <div><dt>Confirmed</dt><dd id="confirmedCount">0</dd></div>
+          <div><dt>Rejected</dt><dd id="rejectedCount">0</dd></div>
+        </dl>
+      </section>
+    </aside>
+
+    <section class="results" aria-live="polite">
+      <div class="results-heading">
+        <div>
+          <p id="resultContext" class="eyebrow">Archive ready</p>
+          <h2 id="resultTitle">Choose a species</h2>
+        </div>
+        <span id="resultCount" class="count"></span>
+      </div>
+
+      <div id="loadingState" class="loading-state" hidden>
+        <span class="spinner" aria-hidden="true"></span>
+        <strong>Analysing candidate recordings</strong>
+      </div>
+
+      <div id="emptyState" class="empty-state">
+        <div class="empty-sonogram" aria-hidden="true">
+          <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+        </div>
+        <p>Select a species to review ranked recordings.</p>
+      </div>
+
+      <details id="importWarnings" hidden><summary>Some recordings could not be imported</summary><ul id="importWarningList"></ul></details>
+
+      <div id="recordingGrid" class="recording-grid"></div>
+    </section>
+  </main>
+
+  <dialog id="reviewDialog">
+    <form id="reviewForm" method="dialog">
+      <div class="dialog-heading">
+        <div>
+          <p id="dialogStation" class="eyebrow"></p>
+          <h2 id="dialogSpecies"></h2>
+        </div>
+        <button id="closeDialog" class="close-button" type="button" aria-label="Close">×</button>
+      </div>
+
+      <div class="form-grid">
+        <div>
+          <label for="commonName">Common name</label>
+          <input id="commonName" name="commonName">
+        </div>
+        <div>
+          <label for="vocalisationType">Vocalisation</label>
+          <select id="vocalisationType" name="vocalisationType">
+            <option value="song">Song</option>
+            <option value="call">Call</option>
+            <option value="flight call">Flight call</option>
+            <option value="alarm call">Alarm call</option>
+            <option value="nocturnal flight call">Nocturnal flight call</option>
+            <option value="drumming">Drumming</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div>
+          <label for="sex">Sex</label>
+          <select id="sex" name="sex"><option value="">Not specified</option><option>male</option><option>female</option><option>uncertain</option></select>
+        </div>
+        <div>
+          <label for="lifeStage">Life stage</label>
+          <select id="lifeStage" name="lifeStage"><option value="">Not specified</option><option>adult</option><option>juvenile</option><option>uncertain</option></select>
+        </div>
+        <div>
+          <label for="animalSeen">Animal seen?</label>
+          <select id="animalSeen" name="animalSeen"><option value="no">No</option><option value="yes">Yes</option><option value="unknown">Unknown</option></select>
+        </div>
+        <div>
+          <label for="playbackUsed">Playback used?</label>
+          <select id="playbackUsed" name="playbackUsed"><option value="no">No</option><option value="yes">Yes</option><option value="unknown">Unknown</option></select>
+        </div>
+        <div class="wide">
+          <label for="backgroundSpecies">Background species</label>
+          <input id="backgroundSpecies" name="backgroundSpecies" placeholder="Comma-separated scientific names">
+        </div>
+        <div class="wide">
+          <label for="location">Public location name</label>
+          <input id="location" name="location">
+        </div>
+        <div>
+          <label for="latitude">Latitude</label>
+          <input id="latitude" name="latitude" inputmode="decimal">
+        </div>
+        <div>
+          <label for="longitude">Longitude</label>
+          <input id="longitude" name="longitude" inputmode="decimal">
+        </div>
+        <div>
+          <label for="elevation">Elevation (m)</label>
+          <input id="elevation" name="elevation" inputmode="numeric">
+        </div>
+        <div>
+          <label for="device">Device</label>
+          <input id="device" name="device">
+        </div>
+        <div class="wide">
+          <label for="microphone">Microphone</label>
+          <input id="microphone" name="microphone">
+        </div>
+        <div class="wide">
+          <label for="remarks">Remarks</label>
+          <textarea id="remarks" name="remarks" rows="3"></textarea>
+        </div>
+      </div>
+
+      <label class="confirmation">
+        <input id="confirmed" name="confirmed" type="checkbox">
+        <span>I have listened to this recording and confirmed the identification against current IOC taxonomy.</span>
+      </label>
+
+      <p id="reviewError" role="alert" hidden></p>
+
+      <div class="dialog-actions">
+        <button id="rejectDialog" class="button danger" type="button">Reject</button>
+        <button class="button primary" value="save" type="submit">Save review</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="fileDialog" aria-labelledby="fileTitle" aria-describedby="fileMessage">
+    <form method="dialog">
+      <div class="dialog-heading">
+        <h2 id="fileTitle">Recording location</h2>
+        <button class="close-button" aria-label="Close" autofocus>×</button>
+      </div>
+      <p id="fileMessage"></p>
+      <label for="filePath">Full recording path</label>
+      <input id="filePath" readonly>
+      <p id="copyFileStatus" role="status"></p>
+      <div class="dialog-actions">
+        <button id="copyFilePath" class="button" type="button">Copy path</button>
+        <button class="button primary">Done</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" hidden></div>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
