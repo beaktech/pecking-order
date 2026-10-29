@@ -9,12 +9,12 @@ export { zonedTime } from './time.js'
 
 export async function scanLibrary(config, onProgress = () => {}) {
   const { clips, warnings } = await scanSource(config)
-  const { names, warnings: nameWarnings } = await loadCommonNames(config)
+  const { names, fallbackNames, warnings: nameWarnings } = await loadCommonNames(config)
   warnings.push(...nameWarnings)
   const source = sourceIdentity(config)
   for (const clip of clips) {
     clip.id = createHash('sha256').update(`${source}\0${clip.relPath}\0${clip.scientificName}`).digest('hex').slice(0, 24)
-    clip.commonName = commonNameFor(names, clip.slug) || clip.commonName || ''
+    clip.commonName = commonNameFor(names, clip.slug) || clip.commonName || commonNameFor(fallbackNames, clip.slug) || ''
   }
   onProgress({ count: clips.length })
   return new BirdLibrary(clips, config, warnings)
@@ -40,7 +40,7 @@ export async function loadLibraryCache(config) {
   if (config.source === 'birdnet-pi') await readPiDatabase(config.databasePath, { checkOnly: true })
   try {
     const cached = JSON.parse(await readFile(join(config.dataRoot, 'library-index.json'), 'utf8'))
-    if (cached.schemaVersion !== 4 || cached.source !== await cacheSource(config) || !Array.isArray(cached.clips)) return null
+    if (cached.schemaVersion !== 5 || cached.source !== await cacheSource(config) || !Array.isArray(cached.clips)) return null
     const clips = cached.clips.map((clip) => ({ ...clip, path: join(config.archiveRoot, clip.relPath) }))
     return new BirdLibrary(clips, config, cached.warnings || [])
   } catch (error) {
@@ -54,7 +54,7 @@ export async function saveLibraryCache(library, config) {
   const temporary = `${path}.tmp`
   await mkdir(config.dataRoot, { recursive: true })
   await writeFile(temporary, JSON.stringify({
-    schemaVersion: 4, source: await cacheSource(config), generatedAt: new Date().toISOString(),
+    schemaVersion: 5, source: await cacheSource(config), generatedAt: new Date().toISOString(),
     clips: library.clips.map(({ path, ...clip }) => clip), warnings: library.warnings,
   }))
   await rename(temporary, path)

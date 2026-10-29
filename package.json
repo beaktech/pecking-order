@@ -3,9 +3,12 @@
   "version": "0.1.0",
   "files": [
     "src/*.js",
+    "resources/common-names.en.json",
+    "resources/ATTRIBUTION.md",
     "public/*.html",
     "public/*.css",
     "public/*.js",
+    "public/*.png",
     "config/*.example.json",
     "CHANGELOG.md",
     "docs/screenshot.png",

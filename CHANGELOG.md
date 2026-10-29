@@ -13,6 +13,8 @@ First public release of **Pecking Order**, by Beak Tech. Release files are prepa
 - Report metadata conflicts, unmatched files and ambiguous local times. Explain that missing older Pi audio is normal because BirdNET-Pi deletes recordings while retaining detection records.
 - Save first-run station settings, import literal native-config coordinates without executing configuration, and keep recording time zones separate from display time zones. Use native common names or explicit labels, with scientific-name fallback; no BirdNET labels or models are bundled.
 
+- Add an attributed offline IOC English-name fallback for species without source common names.
+
 ### Review and export
 
 - Search and rank recordings, inspect spectrograms, listen, keep/reject and confirm identifications manually.

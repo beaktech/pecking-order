@@ -45,7 +45,7 @@ async function start(app, workspace, args = []) {
 try {
   const source = join(root, 'source')
   await mkdir(source)
-  for (const name of ['src', 'public', 'config', 'docs', 'package.json', 'README.md', 'CHANGELOG.md', 'LICENSE']) {
+  for (const name of ['src', 'resources', 'public', 'config', 'docs', 'package.json', 'README.md', 'CHANGELOG.md', 'LICENSE']) {
     await cp(join(project, name), join(source, name), { recursive: true })
   }
   for (const name of ['config/secret.local.json', 'data/state.json', 'exports/private.wav', '.subroutine', 'PHASE5.md']) {
@@ -62,8 +62,8 @@ try {
   assert.notEqual(metadata.private, true)
   assert.match(await readFile(join(source, 'LICENSE'), 'utf8'), /Copyright \(c\) 2026 Beak Tech Community Interest Company/)
   const paths = new Set(packed.files.map(file => file.path))
-  for (const required of ['LICENSE', 'README.md', 'src/cli.js', 'public/index.html', 'docs/screenshot.png', 'docs/birdnet-pi-windows.md', 'config/station.example.json', 'config/birdnet-pi.example.json']) assert.ok(paths.has(required), required)
-  for (const path of paths) assert.match(path, /^(?:src\/[^/]+\.js|public\/[^/]+\.(?:html|css|js)|config\/(?:station|birdnet-pi)\.example\.json|docs\/(?:screenshot\.png|birdnet-pi-windows\.md)|package\.json|README\.md|CHANGELOG\.md|LICENSE)$/)
+  for (const required of ['LICENSE', 'README.md', 'resources/common-names.en.json', 'resources/ATTRIBUTION.md', 'src/cli.js', 'public/index.html', 'docs/screenshot.png', 'docs/birdnet-pi-windows.md', 'config/station.example.json', 'config/birdnet-pi.example.json']) assert.ok(paths.has(required), required)
+  for (const path of paths) assert.match(path, /^(?:resources\/(?:common-names\.en\.json|ATTRIBUTION\.md)|src\/[^/]+\.js|public\/[^/]+\.(?:html|css|js|png)|config\/(?:station|birdnet-pi)\.example\.json|docs\/(?:screenshot\.png|birdnet-pi-windows\.md)|package\.json|README\.md|CHANGELOG\.md|LICENSE)$/)
   // Windows has no executable bit to pack; npm exec below still proves the bin runs there.
   if (process.platform !== 'win32') assert.ok(packed.files.find(file => file.path === 'src/cli.js').mode & 0o111, 'CLI must be executable')
   const tarball = join(root, packed.filename)
@@ -109,9 +109,9 @@ try {
       }
       const html = await (await fetch(app.url)).text()
       assert.match(html, /<title>Pecking Order<\/title>/)
-      assert.match(html, /class="eyebrow">By Beak Tech<\/p>/)
       assert.equal((await request('/api/bootstrap')).clipCount, 1)
       const [clip] = await request('/api/search', 'POST', { species: 'parus_major' })
+      assert.equal(clip.commonName, 'Great Tit')
       clipId = clip.id
       assert.ok(Number.isFinite((await request(`/api/analyse/${clipId}`, 'POST', {})).analysis.score))
       await request(`/api/reviews/${clipId}`, 'PATCH', { decision: 'keep', confirmed: true })

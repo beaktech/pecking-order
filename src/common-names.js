@@ -3,6 +3,13 @@ import { loadSqlite } from './sqlite.js'
 
 const slugFor = (name) => name.trim().toLowerCase().replaceAll(' ', '_')
 
+let bundledNames
+async function loadBundledNames() {
+  bundledNames ||= readFile(new URL('../resources/common-names.en.json', import.meta.url), 'utf8')
+    .then((content) => new Map(Object.entries(JSON.parse(content)).map(([scientific, common]) => [slugFor(scientific), common])))
+  return bundledNames
+}
+
 export async function loadCommonNames(config) {
   const names = new Map()
   const warnings = []
@@ -26,9 +33,8 @@ export async function loadCommonNames(config) {
           if (label && !names.has(label[0])) names.set(...label)
         }
       }
-      if (!names.size) warnings.push({ reason: 'The BirdNET-Go database has no stored common names; scientific names are used unless labelsPath is set', count: 1, examples: [config.databasePath] })
     } catch (error) {
-      warnings.push({ reason: 'Could not read optional BirdNET-Go common names; scientific names are used unless labelsPath is set', count: 1, examples: [`${config.databasePath}: ${error.message}`] })
+      warnings.push({ message: `Could not read optional BirdNET-Go common names from ${config.databasePath} (${error.message}). Bundled English names are used where available; labelsPath can supply or override names.` })
     } finally { db?.close() }
   }
   if (config.labelsPath) {
@@ -40,7 +46,7 @@ export async function loadCommonNames(config) {
       if (label) names.set(...label)
     }
   }
-  return { names, warnings }
+  return { names, fallbackNames: await loadBundledNames(), warnings }
 }
 
 function splitLabel(value) {

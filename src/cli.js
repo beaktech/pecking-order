@@ -32,7 +32,7 @@ async function main() {
   const store = await new Store(config.dataRoot).load()
   let library
   function reportWarnings() {
-    for (const warning of library.warnings) console.warn(`${warning.reason}: ${warning.count}. Examples: ${warning.examples.join(', ')}`)
+    for (const warning of library.warnings) console.warn(warning.message || `${warning.reason}: ${warning.count}. Examples: ${warning.examples.join(', ')}`)
   }
   async function rescan() {
     console.log(`Scanning ${config.archiveRoot}...`)
@@ -51,7 +51,10 @@ async function main() {
   const analyser = new AudioAnalyser(store)
   const server = createAppServer({ config, getLibrary: () => library, rescan, analyser, store })
   const port = Number(values.port)
-  server.on('error', (error) => { console.error(error.message); process.exitCode = 1 })
+  server.on('error', (error) => {
+    console.error(error.code === 'EADDRINUSE' ? `Port ${port} is already in use, perhaps by another Pecking Order window. Close it, or choose another port with --port ${port + 1}.` : error.message)
+    process.exitCode = 1
+  })
   server.listen(port, '127.0.0.1', () => {
     const url = `http://127.0.0.1:${server.address().port}`
     console.log(`Pecking Order is ready at ${url}`)

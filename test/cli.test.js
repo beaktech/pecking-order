@@ -15,7 +15,7 @@ async function fixture(t, source) {
   t.after(() => rm(root, { recursive: true, force: true }))
   const app = join(root, 'app')
   await mkdir(app)
-  for (const name of ['src', 'public', 'config', 'package.json']) await cp(resolve(name), join(app, name), { recursive: true })
+  for (const name of ['src', 'resources', 'public', 'config', 'package.json']) await cp(resolve(name), join(app, name), { recursive: true })
   const archive = join(root, 'Bird recordings, garden & café')
   const filename = source === 'birdnet-go' ? 'parus_major_90p_20260515T120000Z_15s.wav' : 'Great_Tit-90-2026-05-15-birdnet-12:00:00.wav'
   const folder = source === 'birdnet-go' ? join(archive, '2026', '05') : join(archive, 'By_Date', '2026-05-15', 'Great_Tit')
