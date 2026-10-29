@@ -3,6 +3,9 @@ import { mkdir, mkdtemp, rename, rm, writeFile } from 'node:fs/promises'
 import { basename, join } from 'node:path'
 import { promisify } from 'node:util'
 
+import { localDateTime, recordingMetadata, stationDefaults } from './preparation.js'
+export { localDateTime } from './preparation.js'
+
 const execFileAsync = promisify(execFile)
 
 export async function exportSelections({ ids, library, store, config }) {
@@ -23,6 +26,7 @@ export async function exportSelections({ ids, library, store, config }) {
     reviews[clip.id] = { ...review }
   }
 
+  const defaults = stationDefaults(config, library, store)
   const timestamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z')
   await mkdir(config.exportRoot, { recursive: true })
   const stagingDir = await mkdtemp(join(config.exportRoot, `.xeno-canto-${timestamp}-`))
@@ -34,7 +38,6 @@ export async function exportSelections({ ids, library, store, config }) {
 
     for (const clip of clips) {
       const review = reviews[clip.id]
-      const station = library.station()
       const local = localDateTime(clip.timestamp, config.timezone)
       const outputName = `${clip.slug.replace(/[^a-z0-9_-]/gi, '_')}_${local.date}_${local.time.replace(':', '')}_${clip.id}.wav`
       const outputPath = join(stagingDir, outputName)
@@ -42,25 +45,7 @@ export async function exportSelections({ ids, library, store, config }) {
 
       rows.push({
         file: outputName,
-        scientific_name: clip.scientificName,
-        common_name: review.commonName || clip.commonName || '',
-        date: local.date,
-        time: local.time,
-        country: config.country,
-        location: review.location || station.location || station.name || '',
-        latitude: review.latitude ?? station.latitude ?? '',
-        longitude: review.longitude ?? station.longitude ?? '',
-        elevation_m: review.elevation ?? station.elevation ?? '',
-        type: review.vocalisationType || 'song',
-        background_species: review.backgroundSpecies || '',
-        sex: review.sex || '',
-        life_stage: review.lifeStage || '',
-        animal_seen: review.animalSeen || 'no',
-        playback_used: review.playbackUsed || 'no',
-        automatic_recording: 'yes',
-        device: review.device || station.device || '',
-        microphone: review.microphone || station.microphone || '',
-        remarks: review.remarks || 'Selected from an autonomous recording; identification manually reviewed.',
+        ...recordingMetadata(clip, review, defaults, config),
         birdnet_confidence_percent: clip.confidence,
         quality_score: store.metrics[clip.id]?.score ?? '',
         original_file: clip.path,
@@ -76,15 +61,6 @@ export async function exportSelections({ ids, library, store, config }) {
   }
 }
 
-export function localDateTime(timestamp, timezone) {
-  const parts = Object.fromEntries(new Intl.DateTimeFormat('en-GB', {
-    timeZone: timezone,
-    year: 'numeric', month: '2-digit', day: '2-digit',
-    hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
-  }).formatToParts(new Date(timestamp)).map(({ type, value }) => [type, value]))
-  return { date: `${parts.year}-${parts.month}-${parts.day}`, time: `${parts.hour}:${parts.minute}` }
-}
-
 export function toCsv(rows) {
   if (!rows.length) return ''
   const headers = Object.keys(rows[0])
@@ -93,5 +69,5 @@ export function toCsv(rows) {
 }
 
 function exportNotes(count) {
-  return `Pecking Order — Xeno-canto preparation export\n\n${count} lossless WAV recording(s) are included. The archive originals were not modified.\n\nBefore uploading:\n- Listen to each complete recording again.\n- Confirm the identification against current IOC taxonomy.\n- Check foreground and background species.\n- Check the public location name and verify coordinates.\n- Describe any filtering or other processing truthfully. These WAV files were decoded from the source recordings without filtering. Converting a lossy source (such as MP3) to WAV does not restore lost detail.\n- Choose your Xeno-canto licence during upload.\n\nThe CSV is a preparation manifest, not an automated upload.\n`
+  return `Pecking Order — Xeno-canto preparation export\n\n${count} lossless WAV recording(s) are included. The archive originals were not modified.\n\nBefore uploading:\n- Listen to each complete recording again.\n- Confirm the identification against current IOC taxonomy.\n- Check foreground and background species.\n- Check the public location name and verify coordinates.\n- Describe any filtering or other processing truthfully. These WAV files were decoded from the source recordings without filtering. Converting a lossy source (such as MP3) to WAV does not restore lost detail.\n- Choose your Xeno-canto licence during upload.\n\nThe CSV is a preparation manifest, not an automated upload or a verified Xeno-canto batch template. Blank fields still need checking before submission. Choose the sharing licence on Xeno-canto.\n`
 }

@@ -20,7 +20,7 @@
     <div class="top-actions">
       <span id="archiveStatus" class="archive-status">Indexing archive</span>
       <button id="rescanButton" class="button secondary" type="button">Rescan</button>
-      <button id="exportButton" class="button primary" type="button">Export kept</button>
+      <button id="exportButton" class="button primary" type="button">Prepare uploads</button>
     </div>
   </header>
 
@@ -108,6 +108,43 @@
     <p id="speciesMatches" class="species-matches" role="status" hidden></p>
   </div>
 
+  <dialog id="preparationDialog" aria-labelledby="preparationTitle">
+    <div class="preparation-content">
+      <div class="dialog-heading">
+        <div><p class="eyebrow">Xeno-canto</p><h2 id="preparationTitle">Prepare uploads</h2></div>
+        <button id="closePreparation" class="close-button" type="button" aria-label="Close preparation">×</button>
+      </div>
+      <p>Check your kept clips, export the audio, then copy the details into Xeno-canto. Nothing is uploaded automatically.</p>
+      <details class="preparation-defaults">
+        <summary>Station details — save once and reuse</summary>
+        <p>Used when a recording has no individual override. These details are saved for this archive in Pecking Order.</p>
+        <form id="stationDefaultsForm">
+          <fieldset disabled><legend class="visually-hidden">Station upload defaults</legend><div class="form-grid">
+<div><label for="upload-country">Country</label><input id="upload-country" name="country" type="text"></div>
+<div><label for="upload-location">Public location name</label><input id="upload-location" name="location" type="text"></div>
+<div><label for="upload-latitude">Latitude</label><input id="upload-latitude" name="latitude" type="text" inputmode="decimal"></div>
+<div><label for="upload-longitude">Longitude</label><input id="upload-longitude" name="longitude" type="text" inputmode="decimal"></div>
+<div><label for="upload-elevation">Elevation (m, optional)</label><input id="upload-elevation" name="elevation" type="text" inputmode="decimal"></div>
+<div><label for="upload-device">Recorder (optional)</label><input id="upload-device" name="device" type="text"></div>
+<div><label for="upload-microphone">Microphone (optional)</label><input id="upload-microphone" name="microphone" type="text"></div>
+            <div class="wide"><label for="upload-remarks">Default remarks</label><textarea id="upload-remarks" name="remarks" rows="2"></textarea></div>
+          </div><button type="submit" class="button primary">Save station details</button></fieldset>
+        </form>
+      </details>
+      <p id="preparationSummary"></p>
+      <p class="preparation-help">Checks flag information to review before uploading. Choose your sharing licence on Xeno-canto. The exported CSV is a reference sheet; it is not yet a verified batch-upload template.</p>
+      <p id="preparationStatus" role="status"></p>
+      <div id="preparationCopyFallback" hidden><label for="preparationCopyText">Text to copy</label><textarea id="preparationCopyText" readonly rows="5"></textarea></div>
+      <p id="preparationEmpty" hidden>Keep some recordings to prepare them here.</p>
+      <div id="preparationClips"></div>
+      <div class="preparation-export">
+        <p id="preparationExportNote"></p>
+        <div class="preparation-clip-actions"><button id="preparationExport" class="button primary" type="button" disabled>Export confirmed clips</button><a class="button secondary" href="https://xeno-canto.org/upload" target="_blank" rel="noopener noreferrer">Open Xeno-canto ↗</a></div>
+        <div id="preparationExportResult" hidden><label for="preparationExportPath">Export folder</label><input id="preparationExportPath" readonly><button id="preparationCopyPath" class="button secondary" type="button">Copy folder path</button></div>
+      </div>
+    </div>
+  </dialog>
+
   <dialog id="reviewDialog">
     <form id="reviewForm" method="dialog">
       <div class="dialog-heading">
@@ -126,6 +163,7 @@
         <div>
           <label for="vocalisationType">Vocalisation</label>
           <select id="vocalisationType" name="vocalisationType">
+            <option value="">Choose sound type…</option>
             <option value="song">Song</option>
             <option value="call">Call</option>
             <option value="flight call">Flight call</option>
@@ -155,6 +193,8 @@
           <label for="backgroundSpecies">Background species</label>
           <input id="backgroundSpecies" name="backgroundSpecies" placeholder="Comma-separated scientific names">
         </div>
+        <div class="wide"><p class="preparation-help">Blank location and equipment fields use your saved station details.</p></div>
+        <div><label for="country">Country</label><input id="country" name="country"></div>
         <div class="wide">
           <label for="location">Public location name</label>
           <input id="location" name="location">

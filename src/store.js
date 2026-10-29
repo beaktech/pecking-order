@@ -7,6 +7,7 @@ export class Store {
     this.path = join(dataRoot, 'state.json')
     this.metrics = {}
     this.reviews = {}
+    this.uploadDefaults = {}
     this.saveQueue = Promise.resolve()
   }
 
@@ -16,6 +17,7 @@ export class Store {
       // Reviews are the user's own work and always survive. Metrics are a cache
       // of a formula, so they are dropped when that formula has moved on.
       this.reviews = parsed.reviews || {}
+      this.uploadDefaults = parsed.uploadDefaults || {}
       const stale = (parsed.metricsVersion || 1) !== SCORING_VERSION
       this.metrics = stale ? {} : Object.fromEntries(Object.entries(parsed.metrics || {}).filter(([, metric]) => metric && !metric.error))
       if (stale && Object.keys(parsed.metrics || {}).length) {
@@ -31,7 +33,7 @@ export class Store {
     const permitted = [
       'decision', 'confirmed', 'commonName', 'vocalisationType', 'backgroundSpecies',
       'remarks', 'sex', 'lifeStage', 'animalSeen', 'playbackUsed', 'location',
-      'latitude', 'longitude', 'elevation', 'device', 'microphone',
+      'country', 'latitude', 'longitude', 'elevation', 'device', 'microphone',
     ]
     const clean = Object.fromEntries(Object.entries(patch).filter(([key]) => permitted.includes(key)))
     this.reviews[id] = { ...(this.reviews[id] || {}), ...clean, updatedAt: new Date().toISOString() }
@@ -43,7 +45,7 @@ export class Store {
     this.saveQueue = this.saveQueue.catch(() => {}).then(async () => {
       await mkdir(dirname(this.path), { recursive: true })
       const temporary = `${this.path}.tmp`
-      await writeFile(temporary, JSON.stringify({ schemaVersion: 1, metricsVersion: SCORING_VERSION, metrics: this.metrics, reviews: this.reviews }, null, 2))
+      await writeFile(temporary, JSON.stringify({ schemaVersion: 1, metricsVersion: SCORING_VERSION, metrics: this.metrics, reviews: this.reviews, uploadDefaults: this.uploadDefaults }, null, 2))
       await rename(temporary, this.path)
     })
     return this.saveQueue

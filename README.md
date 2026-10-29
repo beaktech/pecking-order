@@ -97,12 +97,14 @@ Local tests and installed-package checks pass on macOS with Node 22.13.0 and 24.
 1. Choose a species, dates, confidence threshold and shortlist size.
 2. Listen to the recordings and inspect their spectrograms. The white playhead follows playback; click, tap or drag on a spectrogram to seek. Seeking preserves playback or pause. With the spectrogram focused, arrow keys move one second (Shift + arrow: a tenth of a second); Home and End jump to the start and end.
 3. **Keep** or **Reject** each recording. Open **⋯** on a kept recording to edit its details.
-4. Check species, location, coordinates, recording equipment and other submission details. Confirm the identification manually.
-5. Choose **Export kept**. Every selected recording must be confirmed before export succeeds.
+4. Choose **Prepare uploads** to see all kept clips across the archive. Expand **Station details** to save the country, public location, coordinates and equipment once. Blank fields in individual reviews inherit these defaults; explicit overrides remain unchanged.
+5. Listen and confirm each identification, choose its sound type and review the highlighted missing details. New reviews do not assume that the sound is a song.
+6. Choose **Export confirmed clips**. The screen states how many unconfirmed clips will be left out. Missing metadata is flagged but does not prevent a local export; complete it before uploading.
+7. Use **Copy all details** or the individual copy buttons, then **Open Xeno-canto** to submit the exported audio yourself. Clipboard access has a selectable-text fallback.
 
 The app opens at `http://127.0.0.1:4317` and is available only on this computer. Use `--port NUMBER` to change the port or `--no-open` to open the printed URL yourself. **Show file** requests Finder's file selection on macOS or the containing folder on Windows/Linux, and always offers a copyable path. Headless systems work with the printed URL and path fallback.
 
-Exports go into a new `exports/xeno-canto-*/` folder with WAV files, `xeno-canto-metadata.csv` and a Pecking Order checklist. The CSV is a preparation manifest, not an upload format or an automated submission. It includes original source paths for your reference. Review what you share and choose a recording licence when uploading to Xeno-canto yourself.
+Exports go into a new `exports/xeno-canto-*/` folder with WAV files, `xeno-canto-metadata.csv` and a Pecking Order checklist. The CSV is a preparation manifest, not a verified Xeno-canto batch-upload template or an automated submission. The preparation checks are local prompts, not a validation of Xeno-canto’s current upload form. It includes original source paths for your reference. Review what you share and choose a recording licence when uploading to Xeno-canto yourself.
 
 WAV export applies no analysis filter or further lossy compression. Converting a lossy source to WAV cannot restore lost detail. Files are named with species, date, time and a recording ID; failed exports remove temporary output and preserve previous exports.
 
@@ -145,7 +147,7 @@ Without an explicit native config, discovery checks only beside the archive and 
 ### Files to keep
 
 - `config/station.local.json`: your settings.
-- `data/state.json`: saved reviews and measured quality scores.
+- `data/state.json`: saved reviews, measured quality scores and upload defaults scoped to each source archive. Saving station upload details changes this local state, not your BirdNET configuration or database.
 - `data/library-index.json` and `data/spectrograms/`: reusable caches.
 - `exports/`: completed submission folders.
 

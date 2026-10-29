@@ -15,6 +15,11 @@ First public release of **Pecking Order**, by Beak Tech. Release files are prepa
 
 ### Review and export
 
+- Add **Prepare uploads**, listing kept clips across species with reusable station details, metadata checks, per-field copying and selectable-text clipboard fallback.
+- Save upload defaults per source archive and preserve recording-specific overrides. Use the same resolved details in the preparation screen and WAV/CSV exports.
+- Stop assuming “song” for new reviews. Flag missing sound types, location information and identification confirmation, and show which unconfirmed clips will be excluded from export.
+- Keep submission manual: the CSV remains a preparation manifest pending confirmation of Xeno-canto’s batch-upload template.
+
 - Show common and scientific names together in the species picker, results and review heading; search by either name.
 - Anchor the searchable species picker above the page, with mouse, touch and keyboard selection.
 - Redesign recording cards with integrated audio controls, icon-led metrics, clearer species names and orange keep actions.

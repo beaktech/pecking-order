@@ -1,7 +1,8 @@
+import { createUploadPreparation } from './upload-preparation.js'
 import { createSpeciesPicker } from './species-picker.js'
 import { attachSpectrogramPlayers } from './spectrogram-player.js'
 
-let disposePlayers
+let disposePlayers, activeReview
 
 const state = { bootstrap: null, results: [], activeId: null, searchGeneration: 0, sortPending: false, saving: new Set() }
 
@@ -19,20 +20,23 @@ const speciesPicker = createSpeciesPicker({
   list: elements.speciesList, status: byId('speciesMatches'), label: speciesLabel,
 })
 
+const preparation = createUploadPreparation({ api, openReview })
+elements.dialog.addEventListener('close', () => { void preparation.refresh() })
+
 void bootstrap().catch((error) => showToast(error.message))
 
 elements.confidenceInput.addEventListener('input', () => { elements.confidenceOutput.value = `${elements.confidenceInput.value}%` })
 elements.searchForm.addEventListener('submit', search)
 elements.rescan.addEventListener('click', rescan)
-elements.export.addEventListener('click', exportKept)
+elements.export.addEventListener('click', () => { speciesPicker.close(); void preparation.open() })
 byId('closeDialog').addEventListener('click', () => elements.dialog.close())
 byId('copyFilePath').addEventListener('click', copyFilePath)
 byId('rejectDialog').addEventListener('click', () => saveActive({ decision: 'reject', confirmed: false }, true))
 elements.reviewForm.addEventListener('submit', saveReviewForm)
 elements.grid.addEventListener('click', handleGridClick)
 // Keep one recording audible, and defer ranking changes until listening stops.
-elements.grid.addEventListener('play', (event) => {
-  for (const audio of elements.grid.querySelectorAll('audio')) {
+document.addEventListener('play', (event) => {
+  for (const audio of document.querySelectorAll('audio')) {
     if (audio !== event.target) audio.pause()
   }
 }, true)
@@ -237,7 +241,12 @@ async function handleGridClick(event) {
   if (!button) return
   const cardElement = button.closest('[data-id]')
   const item = state.results.find((entry) => entry.id === cardElement.dataset.id)
-  if (button.dataset.action === 'details') return openReview(item)
+  if (button.dataset.action === 'details') {
+    try {
+      const { defaults } = await api('/api/preparation/defaults')
+      return openReview({ ...item, defaults: { ...item.defaults, ...defaults } })
+    } catch (error) { return showToast(error.message) }
+  }
   if (button.dataset.action === 'reveal') return showFile(item)
   const decision = button.dataset.action
   await patchReview(item, { decision, ...(decision === 'reject' ? { confirmed: false } : {}) })
@@ -269,8 +278,12 @@ async function copyFilePath() {
 
 function openReview(item) {
   state.activeId = item.id
+  activeReview = item
   byId('reviewError').hidden = true
-  const values = { ...item.defaults, vocalisationType: 'song', animalSeen: 'no', playbackUsed: 'no', ...item.review }
+  const values = { ...item.defaults, vocalisationType: '', animalSeen: 'no', playbackUsed: 'no', ...item.review }
+  for (const [key, value] of Object.entries(item.defaults)) {
+    if (values[key] === '' || values[key] == null) values[key] = value
+  }
   byId('dialogSpecies').textContent = speciesLabel(item)
   byId('dialogStation').textContent = `${item.stationName} · ${item.localTime}`
   for (const field of elements.reviewForm.elements) {
@@ -285,13 +298,16 @@ async function saveReviewForm(event) {
   event.preventDefault()
   const form = new FormData(elements.reviewForm)
   const patch = Object.fromEntries(form.entries())
+  for (const key of ['country', 'location', 'latitude', 'longitude', 'elevation', 'device', 'microphone', 'remarks']) {
+    if (String(patch[key] ?? '') === String(activeReview.defaults[key] ?? '')) patch[key] = ''
+  }
   patch.confirmed = byId('confirmed').checked
   patch.decision = 'keep'
   await saveActive(patch, true)
 }
 
 async function saveActive(patch, close = false) {
-  const item = state.results.find((entry) => entry.id === state.activeId)
+  const item = activeReview
   if (!item) return
   const saved = await patchReview(item, patch)
   if (saved && close) elements.dialog.close()
@@ -319,22 +335,6 @@ async function patchReview(item, patch) {
     return false
   } finally {
     state.saving.delete(item.id)
-  }
-}
-
-async function exportKept() {
-  const ids = Object.entries(state.bootstrap.reviews)
-    .filter(([, review]) => review.decision === 'keep' && review.confirmed === true)
-    .map(([id]) => id)
-  if (!ids.length) return showToast('No kept and confirmed recordings are ready to export.')
-  elements.export.disabled = true
-  try {
-    const result = await api('/api/export', { method: 'POST', body: JSON.stringify({ ids }) })
-    showToast(`Exported ${result.count} recording${result.count === 1 ? '' : 's'} to ${result.outputDir}`, 8000)
-  } catch (error) {
-    showToast(error.message)
-  } finally {
-    elements.export.disabled = false
   }
 }
 

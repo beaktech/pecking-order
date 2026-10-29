@@ -6,6 +6,7 @@ import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
 import { pipeline } from 'node:stream/promises'
 import { exportSelections } from './export.js'
+import { defaultsKey, stationDefaults, validateStationDefaults, recordingMetadata, preparationChecks } from './preparation.js'
 import { revealFile } from './platform.js'
 
 const execFileAsync = promisify(execFile)
@@ -18,6 +19,34 @@ export function createAppServer({ config, getLibrary, rescan, analyser, store, r
       if (url.pathname === '/api/bootstrap' && request.method === 'GET') {
         const library = getLibrary()
         return json(response, 200, { ...library.summary(), reviews: Object.fromEntries(Object.entries(store.reviews).filter(([id]) => library.get(id))) })
+      }
+      if (url.pathname === '/api/preparation' && request.method === 'GET') {
+        const library = getLibrary()
+        const defaults = stationDefaults(config, library, store)
+        const clips = library.clips.filter(clip => store.reviews[clip.id]?.decision === 'keep').map(clip => {
+          const item = presentClip(clip, library, store, config)
+          const metadata = recordingMetadata(clip, item.review, defaults, config)
+          return { ...item, metadata, checks: preparationChecks(metadata, item.review) }
+        })
+        return json(response, 200, { defaults, clips, timezone: config.timezone })
+      }
+      if (url.pathname === '/api/preparation/defaults' && request.method === 'GET') {
+        return json(response, 200, { defaults: stationDefaults(config, getLibrary(), store) })
+      }
+      if (url.pathname === '/api/preparation/defaults' && request.method === 'PUT') {
+        const details = validateStationDefaults(await body(request))
+        const key = defaultsKey(config)
+        const previous = store.uploadDefaults[key]
+        store.uploadDefaults[key] = details
+        try { await store.save() }
+        catch (error) {
+          if (store.uploadDefaults[key] === details) {
+            if (previous === undefined) delete store.uploadDefaults[key]
+            else store.uploadDefaults[key] = previous
+          }
+          throw error
+        }
+        return json(response, 200, { defaults: stationDefaults(config, getLibrary(), store) })
       }
       if (url.pathname === '/api/scan' && request.method === 'POST') {
         const library = await rescan()
@@ -70,7 +99,7 @@ export function createAppServer({ config, getLibrary, rescan, analyser, store, r
     } catch (error) {
       console.error(error)
       if (response.headersSent || response.destroyed) return response.destroy()
-      return json(response, 500, { error: error.message })
+      return json(response, error.statusCode || 500, { error: error.message })
     }
   })
 }
@@ -78,6 +107,7 @@ export function createAppServer({ config, getLibrary, rescan, analyser, store, r
 function presentClip(clip, library, store, config) {
   const station = library.station()
   const review = store.reviews[clip.id] || {}
+  const uploadDefaults = stationDefaults(config, library, store)
   const local = new Intl.DateTimeFormat('en-GB', {
     timeZone: config.timezone, dateStyle: 'medium', timeStyle: 'short',
   }).format(new Date(clip.timestamp))
@@ -94,16 +124,14 @@ function presentClip(clip, library, store, config) {
     review,
     defaults: {
       commonName: clip.commonName,
-      location: station.location || station.name || '', latitude: station.latitude ?? '',
-      longitude: station.longitude ?? '', elevation: station.elevation ?? '',
-      device: station.device || '', microphone: station.microphone || '',
+      ...uploadDefaults,
     },
   }
 }
 
 async function spectrogram(clip, dataRoot) {
   const directory = join(dataRoot, 'spectrograms')
-  const output = join(directory, `${clip.id}.png`)
+  const output = join(directory, `${clip.id}-magma.png`)
   try {
     await stat(output)
     return output
@@ -111,7 +139,7 @@ async function spectrogram(clip, dataRoot) {
   await mkdir(directory, { recursive: true })
   await execFileAsync('ffmpeg', [
     '-v', 'error', '-y', '-i', clip.path,
-    '-lavfi', 'showspectrumpic=s=1200x360:legend=disabled:color=fiery:scale=log:gain=3',
+    '-lavfi', 'showspectrumpic=s=1200x360:legend=disabled:color=magma:scale=log:gain=5:drange=80:stop=12000',
     '-frames:v', '1', output,
   ])
   return output
