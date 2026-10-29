@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { parseArgs } from 'node:util'
+import { acquireWorkspaceLock } from './workspace-lock.js'
 import { AudioAnalyser } from './analyse.js'
 import { loadConfig } from './config.js'
 import { loadLibraryCache, saveLibraryCache, scanLibrary } from './library.js'
@@ -24,6 +25,19 @@ async function main() {
     console.log('BirdNET-Pi requires its BirdNET-Pi/scripts/birds.db SQLite database, opened read-only.')
     return
   }
+  const releaseWorkspace = acquireWorkspaceLock(process.cwd())
+  process.once('exit', releaseWorkspace)
+  // Exit handlers release the lock even when startup fails. A killed process is
+  // detected and recovered on its next start, including on Windows.
+  let server
+  const stop = () => {
+    if (!server?.listening) return process.exit(0)
+    const timer = setTimeout(() => process.exit(0), 5000)
+    timer.unref()
+    server.close(() => process.exit(0))
+  }
+  process.once('SIGINT', stop)
+  process.once('SIGTERM', stop)
   const config = await loadConfig(values.config, {
     archive: values.archive, source: values.source, database: values.database, sourceTimezone: values['source-timezone'], stationConfig: values['station-config'],
   })
@@ -49,7 +63,7 @@ async function main() {
     reportWarnings()
   } else await rescan()
   const analyser = new AudioAnalyser(store)
-  const server = createAppServer({ config, getLibrary: () => library, rescan, analyser, store })
+  server = createAppServer({ config, getLibrary: () => library, rescan, analyser, store })
   const port = Number(values.port)
   server.on('error', (error) => {
     console.error(error.code === 'EADDRINUSE' ? `Port ${port} is already in use, perhaps by another Pecking Order window. Close it, or choose another port with --port ${port + 1}.` : error.message)

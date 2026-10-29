@@ -130,3 +130,17 @@ test('CLI fails before scanning when audio tools are absent, while help remains 
   assert.match(help.stdout, /Usage:/)
   assert.equal(help.stderr, '')
 })
+
+test('CLI refuses a second process in the same workspace even on a different port', async t => {
+  const { app, args } = await fixture(t, 'birdnet-go')
+  const first = await start(t, app, args)
+  await assert.rejects(execFileAsync(process.execPath, ['src/cli.js', '--no-open', '--port', '0', ...args], { cwd: app }), error => {
+    assert.match(error.stderr, /already running here/)
+    assert.doesNotMatch(error.stdout, /Scanning|ready at/)
+    return true
+  })
+  await first.stop()
+  const next = await start(t, app, [])
+  assert.match(next.logs().stdout, /ready at/)
+  await next.stop()
+})
