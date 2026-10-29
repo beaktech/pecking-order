@@ -6,6 +6,8 @@ First public release of **Pecking Order**, by Beak Tech. The package has not yet
 
 ### Reliability and security
 
+- Treat browser-cancelled media streams as normal navigation instead of logging an application error.
+- Add development-only ESLint checks and Chromium/WebKit interaction tests to CI, with a committed dependency lockfile. The installed app retains zero npm runtime dependencies.
 - Prevent simultaneous processes from opening the same review workspace, with recovery after a stopped process.
 - Preserve unsaved station-detail edits when a recording review refreshes the preparation screen.
 - Remove unused review mutation and batch-analysis methods; tests use the production save path.

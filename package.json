@@ -27,7 +27,9 @@
   "scripts": {
     "start": "node src/cli.js",
     "test": "node --test",
-    "test:package": "node scripts/check-package.mjs"
+    "test:package": "node scripts/check-package.mjs",
+    "lint": "eslint . --max-warnings 0",
+    "test:browser": "playwright test"
   },
   "description": "Review BirdNET-Go and BirdNET-Pi recordings and prepare selections for Xeno-canto.",
   "license": "MIT",
@@ -46,5 +48,11 @@
     "birdnet-pi",
     "birdsong",
     "xeno-canto"
-  ]
+  ],
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.64.1",
+    "eslint": "10.13.0",
+    "globals": "17.13.0"
+  }
 }

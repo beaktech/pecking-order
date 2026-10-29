@@ -59,6 +59,7 @@ try {
   const metadata = JSON.parse(await readFile(join(source, 'package.json'), 'utf8'))
   assert.equal(metadata.author, 'Beak Tech Community Interest Company')
   assert.equal(metadata.license, 'MIT')
+  assert.deepEqual(Object.keys(metadata.dependencies || {}), [], 'The installed app must not acquire runtime dependencies')
   assert.notEqual(metadata.private, true)
   assert.match(await readFile(join(source, 'LICENSE'), 'utf8'), /Copyright \(c\) 2026 Beak Tech Community Interest Company/)
   const paths = new Set(packed.files.map(file => file.path))

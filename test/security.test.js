@@ -55,7 +55,7 @@ test('rejects malformed, non-object, oversized and invalid review payloads witho
   const f = await fixture(t)
   for (const [body, status] of [
     ['{', 400], ['null', 400], ['[]', 400], ['true', 400], ['{"remarks":"' + 'x'.repeat(1024 * 1024) + '"}', 413],
-    [JSON.stringify({ decision: '\"><img src=x onerror=alert(1)>' }), 400],
+    [JSON.stringify({ decision: '"><img src=x onerror=alert(1)>' }), 400],
     [JSON.stringify({ confirmed: 'true' }), 400], [JSON.stringify({ location: {} }), 400],
     [JSON.stringify({ latitude: 91 }), 400], [JSON.stringify({ remarks: 'x'.repeat(4001) }), 400],
   ]) {

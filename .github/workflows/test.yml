@@ -51,8 +51,34 @@ jobs:
           npm --version
           ffmpeg -version
           ffprobe -version
-      # No npm install/ci: there are no dependencies or lockfile.
+      - name: Install development tools
+        run: npm ci --ignore-scripts
+      - name: Lint JavaScript
+        run: npm run lint
       - name: Run tests
         run: npm test
       - name: Verify the offline npm package
         run: npm run test:package
+
+  browser:
+    name: Browser interactions
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install development tools
+        run: npm ci --ignore-scripts
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes ffmpeg
+      - name: Install test browsers
+        run: npx --no-install playwright install --with-deps chromium webkit
+      - name: Test browser interactions
+        run: npm run test:browser

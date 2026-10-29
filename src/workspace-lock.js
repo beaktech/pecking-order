@@ -24,7 +24,7 @@ export function acquireWorkspaceLock(workspaceRoot) {
     if (error.code !== 'EEXIST') throw error
     try { mkdirSync(recovery) }
     catch (error) {
-      if (error.code === 'EEXIST') throw new Error(`Another workspace startup or recovery is in progress. Try again shortly. If this persists after every process has stopped, remove ${recovery}.`)
+      if (error.code === 'EEXIST') throw new Error(`Another workspace startup or recovery is in progress. Try again shortly. If this persists after every process has stopped, remove ${recovery}.`, { cause: error })
       throw error
     }
     try {

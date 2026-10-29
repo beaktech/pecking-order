@@ -157,9 +157,9 @@ These files belong to your review folder, never the installed package or npm cac
 
 ## Development
 
-Run `npm test` in the source checkout. `npm run test:package` packs and installs the app offline in temporary directories, checks package contents and runs both source workflows from the installed package (Go only on native Windows). Tests use temporary fixtures and generated audio, never real station recordings or databases. The runtime uses Node's standard library and has no npm dependencies.
+Run `npm test` in the source checkout. `npm run test:package` packs and installs the app offline in temporary directories, checks package contents and runs both source workflows from the installed package (Go only on native Windows). Tests use temporary fixtures and generated audio, never real station recordings or databases. The runtime uses Node's standard library and has no npm runtime dependencies.
 
-There is no compilation step or configured linter, formatter or type checker. The offline package check is the release build check. See [CONTRIBUTING.md](CONTRIBUTING.md) for the repository map, contribution workflow and regression-test guidance, and [SECURITY.md](SECURITY.md) to report vulnerabilities privately.
+There is no compilation step. For development, `npm ci --ignore-scripts` installs the locked ESLint and Playwright tools. Run `npm run lint` and `npm run test:browser` alongside the checks above; the contribution guide includes browser installation instructions. The offline package check is the release build check. No formatter or type checker is configured. See [CONTRIBUTING.md](CONTRIBUTING.md) for the repository map, contribution workflow and regression-test guidance, and [SECURITY.md](SECURITY.md) to report vulnerabilities privately.
 
 ## Credits and licence
 
