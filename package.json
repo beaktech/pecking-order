@@ -14,7 +14,8 @@
     "docs/screenshot.png",
     "docs/birdnet-pi-windows.md",
     "CONTRIBUTING.md",
-    "SECURITY.md"
+    "SECURITY.md",
+    "CODE_OF_CONDUCT.md"
   ],
   "type": "module",
   "engines": {

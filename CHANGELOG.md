@@ -2,9 +2,14 @@
 
 ## 0.1.0 — Unreleased
 
-First public release of **Pecking Order**, by Beak Tech. Release files are prepared locally; nothing has been published to npm or GitHub.
+First public release of **Pecking Order**, by Beak Tech. The package has not yet been published to npm.
 
-### Health review fixes
+### Reliability and security
+
+- Prevent simultaneous processes from opening the same review workspace, with recovery after a stopped process.
+- Preserve unsaved station-detail edits when a recording review refreshes the preparation screen.
+- Remove unused review mutation and batch-analysis methods; tests use the production save path.
+- Add a community code of conduct.
 
 - Reject foreign Host/Origin requests to the local app, limit JSON request bodies and validate review values before saving. Escape stored decision text when rendering cards.
 - Neutralise formula-like CSV text while preserving numeric coordinates and measurements.
@@ -45,4 +50,4 @@ First public release of **Pecking Order**, by Beak Tech. Release files are prepa
 - Add an MIT licence with **Beak Tech Community Interest Company** as copyright holder and package author. Show the Beak Tech logo and name above the application title.
 - Include a public README, synthetic demonstration screenshot, source compatibility references and credits. Restrict npm contents to application files, neutral examples and public documentation.
 - Prepare version **0.1.0** for publication by removing the temporary `private` flag. Publication remains a separate owner action.
-- Add GitHub Actions for macOS, Windows and Linux on Node 22.13.0, latest 22 and 24, including offline package checks. Hosted jobs have not run before the initial repository push.
+- Add GitHub Actions for macOS, Windows and Linux on Node 22.13.0, latest 22 and 24, including offline package checks. Check hosted results for the release revision.

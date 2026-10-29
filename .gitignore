@@ -31,3 +31,13 @@ By_Date/
 # Local dependencies and package archives.
 node_modules/
 *.tgz
+
+# Editor files and local test reports.
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+coverage/
+test-results/
+playwright-report/

@@ -36,6 +36,6 @@ There is currently no configured linter, formatter or type checker. Follow the s
 
 Keep original recordings and source databases unchanged. Uploading to Xeno-canto remains a manual user action. Use small synthetic fixtures and omit private recordings, credentials, precise station locations, local config and exported metadata from issues and pull requests.
 
-Keep fixes focused. Describe the problem, resulting behaviour and checks run in your pull request. Use respectful, constructive language when discussing contributions. Report suspected security vulnerabilities privately using [SECURITY.md](SECURITY.md), rather than posting an exploit or private data in an issue.
+Keep fixes focused. Describe the problem, resulting behaviour and checks run in your pull request. Follow the [code of conduct](CODE_OF_CONDUCT.md) when participating in the project. Report suspected security vulnerabilities privately using [SECURITY.md](SECURITY.md), rather than posting an exploit or private data in an issue.
 
 Application code is MIT-licensed. The IOC names data has separate CC BY 3.0 attribution; see [resources/ATTRIBUTION.md](resources/ATTRIBUTION.md). Preserve that distinction in contributions and releases.

@@ -90,7 +90,7 @@ Compatibility is checked against these **source revisions**, using synthetic fix
 | [Nachtzuster BirdNET-Pi](https://github.com/Nachtzuster/BirdNET-Pi) — primary Pi target | [`88985a3`](https://github.com/Nachtzuster/BirdNET-Pi/commit/88985a3a6fb1931a33f26ba1c46717a2a444c5b7) | `By_Date` layout, SQLite detections, standard and RTSP filenames |
 | [Original BirdNET-Pi](https://github.com/mcguirepr89/BirdNET-Pi) | [`a2febea`](https://github.com/mcguirepr89/BirdNET-Pi/commit/a2febea9c278836b7c130b36cf5e5058a0f32248) | Original filenames and apostrophe-free stored common names |
 
-Local tests and installed-package checks pass on macOS with Node 22.13.0 and 24.22.1. GitHub Actions is configured to run tests and offline package checks on macOS, Windows and Linux with the minimum Node version, latest 22 and 24. Hosted jobs have not yet run because the public repository has not been created. Windows/Linux desktop launchers are covered by simulated tests; a real WSL transfer is still unverified. BirdNET Analyzer segments and multiple stations in one workspace are outside the initial release.
+Local tests and installed-package checks pass on macOS with Node 22.13.0 and 24.22.1. GitHub Actions is configured to run tests and offline package checks on macOS, Windows and Linux with the minimum Node version, latest 22 and 24. Check the [GitHub Actions results](https://github.com/beaktech/pecking-order/actions) for the current revision before release. Windows/Linux desktop launchers are covered by simulated tests; a real WSL transfer is still unverified. BirdNET Analyzer segments and multiple stations in one workspace are outside the initial release.
 
 ## Review and export
 
@@ -125,7 +125,7 @@ On first launch, `config/station.local.json` is created **inside the folder wher
 
 If the recording time zone is missing, the available setup information is saved and an error explains how to confirm `sourceTimezone`. Pecking Order never guesses it from this computer's display time zone. The `timezone` field controls display, date filters and exports, and defaults to this computer's zone. Ambiguous or nonexistent local times around daylight-saving changes are reported and excluded.
 
-Use `--config PATH` for another JSON config. This changes which settings file is read; **data and exports still belong to the current working folder**. Separate review folders keep stations' settings and reviews separate. Run only one Pecking Order process per review folder; multiple browser tabs can use that process. Separate processes do not coordinate state writes. Paths in a config resolve beside that file; CLI and environment paths resolve from the working folder.
+Use `--config PATH` for another JSON config. This changes which settings file is read; **data and exports still belong to the current working folder**. Separate review folders keep stations' settings and reviews separate. Run only one Pecking Order process per review folder; multiple browser tabs can use that process. A workspace lock prevents separate processes from using the same folder. Stale locks from a stopped process are recovered on startup; if ownership cannot be verified, the error gives safe recovery instructions. Paths in a config resolve beside that file; CLI and environment paths resolve from the working folder.
 
 Archive path precedence is `--archive PATH`, then `PECKING_ORDER_ARCHIVE`, then the config's `archiveRoot`. Other overrides are:
 
