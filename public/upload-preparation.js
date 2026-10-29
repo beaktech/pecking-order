@@ -16,6 +16,11 @@ export function createUploadPreparation({ api, openReview }) {
   const exportButton = byId('preparationExport')
   let data = null, loading = false, exporting = false, saving = false, generation = 0
 
+  const draft = new Map()
+  form.addEventListener('input', event => {
+    if (event.target.name) draft.set(event.target.name, event.target.value)
+  })
+
   function updateExport() {
     const confirmed = data?.clips.filter(item => item.review.confirmed === true) || []
     exportButton.textContent = exporting ? 'Exporting…' : `Export confirmed clips (${confirmed.length})`
@@ -37,7 +42,7 @@ export function createUploadPreparation({ api, openReview }) {
       const result = await api('/api/preparation')
       if (current !== generation) return
       data = result
-      for (const field of form.elements) if (field.name) field.value = data.defaults[field.name] ?? ''
+      for (const field of form.elements) if (field.name) field.value = draft.has(field.name) ? draft.get(field.name) : data.defaults[field.name] ?? ''
       const complete = data.clips.filter(item => !item.checks.length).length
       byId('preparationSummary').textContent = `${data.clips.length} kept clips · ${complete} with preparation checks complete. Dates and times use ${data.timezone}.`
       byId('preparationEmpty').hidden = data.clips.length > 0
@@ -56,6 +61,7 @@ export function createUploadPreparation({ api, openReview }) {
         </article>`
       }).join('')
     } catch (error) {
+      if (current !== generation) return
       status.textContent = error.message
       data = null
       list.replaceChildren()
@@ -95,6 +101,7 @@ export function createUploadPreparation({ api, openReview }) {
     updateExport()
     try {
       await api('/api/preparation/defaults', { method:'PUT', body:JSON.stringify(details) })
+      draft.clear()
       await reload()
       status.textContent = 'Station details saved. Individual recording overrides have been preserved.'
     } catch (error) { status.textContent = error.message }
