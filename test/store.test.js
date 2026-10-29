@@ -34,7 +34,7 @@ test('keeps metrics from the current formula', async () => {
 
 test('records the scoring version it saved under', async () => {
   const { dir, store } = await storeWith({ metricsVersion: SCORING_VERSION, metrics: {}, reviews: {} })
-  store.updateReview('abc', { decision: 'keep' })
+  await store.saveReview('abc', { decision: 'keep' })
   await store.save()
   const written = JSON.parse(await readFile(join(dir, 'state.json'), 'utf8'))
   assert.equal(written.metricsVersion, SCORING_VERSION)
@@ -43,7 +43,7 @@ test('records the scoring version it saved under', async () => {
 
 test('ignores review fields that are not on the permitted list', async () => {
   const { store } = await storeWith({ metrics: {}, reviews: {} })
-  const review = store.updateReview('abc', { decision: 'keep', score: 100, path: '/etc/passwd' })
+  const review = await store.saveReview('abc', { decision: 'keep', score: 100, path: '/etc/passwd' })
   assert.equal(review.decision, 'keep')
   assert.equal(review.score, undefined)
   assert.equal(review.path, undefined)
@@ -51,12 +51,12 @@ test('ignores review fields that are not on the permitted list', async () => {
 
 test('a failed save does not block later saves', async () => {
   const { dir, store } = await storeWith({ metrics: {}, reviews: {} })
-  store.updateReview('abc', { decision: 'keep' })
+  await store.saveReview('abc', { decision: 'keep' })
   const goodPath = store.path
   store.path = join(dir, 'state.json', 'not-a-directory')
   await assert.rejects(store.save())
   store.path = goodPath
-  store.updateReview('abc', { confirmed: true })
+  await store.saveReview('abc', { confirmed: true })
   await store.save()
   const written = JSON.parse(await readFile(goodPath, 'utf8'))
   assert.equal(written.reviews.abc.confirmed, true)

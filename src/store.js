@@ -29,12 +29,6 @@ export class Store {
     return this
   }
 
-  updateReview(id, patch) {
-    const clean = validateReview(patch)
-    this.reviews[id] = { ...(this.reviews[id] || {}), ...clean, updatedAt: new Date().toISOString() }
-    return this.reviews[id]
-  }
-
   saveReview(id, patch) {
     const clean = validateReview(patch)
     return this.enqueue(async () => {

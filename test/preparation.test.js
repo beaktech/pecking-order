@@ -16,8 +16,8 @@ async function fixture(t) {
   const config = { source:'birdnet-go', archiveRoot:join(root,'archive'), sourceTimezone:'UTC', timezone:'Europe/London', dataRoot:join(root,'data'), exportRoot:join(root,'exports'), country:'United Kingdom' }
   const store = await new Store(config.dataRoot).load()
   const clips = ['kept','rejected','unreviewed'].map(id => ({id,slug:'parus_major',scientificName:'Parus major',commonName:'Great Tit',timestamp:'2026-05-15T10:09:00Z',relPath:`${id}.wav`,path:join(root,`${id}.wav`),confidence:98}))
-  store.updateReview('kept',{decision:'keep',confirmed:true,vocalisationType:'call'})
-  store.updateReview('rejected',{decision:'reject'})
+  await store.saveReview('kept',{decision:'keep',confirmed:true,vocalisationType:'call'})
+  await store.saveReview('rejected',{decision:'reject'})
   const library = { clips, get:id=>clips.find(clip=>clip.id===id), station:()=>({name:'Garden',latitude:51,longitude:-1,device:'Original recorder'}), summary:()=>({}) }
   return {root,config,store,clips,library}
 }
@@ -94,7 +94,7 @@ test('WAV export uses saved defaults and per-clip overrides, including countries
   const {config,store,library,clips} = await fixture(t)
   await promisify(execFile)('ffmpeg',['-v','error','-f','lavfi','-i','sine=frequency=1000:duration=0.05',clips[0].path])
   store.uploadDefaults[defaultsKey(config)] = validateStationDefaults({country:'France',location:'Pond',latitude:0,longitude:0,device:'Default recorder',remarks:'Default remarks'})
-  store.updateReview('kept',{country:'United Kingdom',microphone:'Clip microphone'})
+  await store.saveReview('kept',{country:'United Kingdom',microphone:'Clip microphone'})
   const result=await exportSelections({ids:['kept'],library,store,config})
   const csv=await readFile(join(result.outputDir,'xeno-canto-metadata.csv'),'utf8')
   assert.match(csv,/"United Kingdom","Pond","0","0"/)

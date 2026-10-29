@@ -17,19 +17,6 @@ export class AudioAnalyser {
     this.inflight = new Map()
   }
 
-  async analyseMany(clips, concurrency = 4) {
-    const results = new Array(clips.length)
-    let cursor = 0
-    const workers = Array.from({ length: Math.min(concurrency, clips.length) }, async () => {
-      while (cursor < clips.length) {
-        const index = cursor++
-        results[index] = await this.analyse(clips[index])
-      }
-    })
-    await Promise.all(workers)
-    return results
-  }
-
   async analyse(clip) {
     const cached = this.store.metrics[clip.id]
     if (cached && !cached.error) return { ...clip, analysis: cached }
