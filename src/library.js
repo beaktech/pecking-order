@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto'
-import { mkdir, readFile, rename, stat, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readFile, rename, rm, stat, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { readPiDatabase, scanSource, sourceIdentity } from './sources.js'
 import { loadCommonNames } from './common-names.js'
@@ -51,13 +51,16 @@ export async function loadLibraryCache(config) {
 
 export async function saveLibraryCache(library, config) {
   const path = join(config.dataRoot, 'library-index.json')
-  const temporary = `${path}.tmp`
   await mkdir(config.dataRoot, { recursive: true })
-  await writeFile(temporary, JSON.stringify({
-    schemaVersion: 5, source: await cacheSource(config), generatedAt: new Date().toISOString(),
-    clips: library.clips.map(({ path, ...clip }) => clip), warnings: library.warnings,
-  }))
-  await rename(temporary, path)
+  const temporary = await mkdtemp(join(config.dataRoot, '.library-index-'))
+  try {
+    const staged = join(temporary, 'index.json')
+    await writeFile(staged, JSON.stringify({
+      schemaVersion: 5, source: await cacheSource(config), generatedAt: new Date().toISOString(),
+      clips: library.clips.map(({ path, ...clip }) => clip), warnings: library.warnings,
+    }))
+    await rename(staged, path)
+  } finally { await rm(temporary, { recursive: true, force: true }) }
 }
 
 export class BirdLibrary {

@@ -1,6 +1,6 @@
 import { createServer } from 'node:http'
 import { createReadStream } from 'node:fs'
-import { mkdir, readFile, stat } from 'node:fs/promises'
+import { mkdir, mkdtemp, readFile, rename, rm, stat } from 'node:fs/promises'
 import { extname, join, normalize } from 'node:path'
 import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
@@ -13,6 +13,8 @@ const execFileAsync = promisify(execFile)
 const TYPES = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.png': 'image/png' }
 
 export function createAppServer({ config, getLibrary, rescan, analyser, store, reveal = revealFile }) {
+  let scanning
+  const spectrograms = new Map()
   return createServer(async (request, response) => {
     try {
       if (!isLocalRequest(request)) return json(response, 403, { error: 'Only requests from this Pecking Order window are allowed.' })
@@ -44,7 +46,8 @@ export function createAppServer({ config, getLibrary, rescan, analyser, store, r
         return json(response, 200, { defaults: stationDefaults(config, getLibrary(), store) })
       }
       if (url.pathname === '/api/scan' && request.method === 'POST') {
-        const library = await rescan()
+        scanning ||= Promise.resolve().then(rescan).finally(() => { scanning = null })
+        const library = await scanning
         return json(response, 200, library.summary())
       }
       if (url.pathname === '/api/search' && request.method === 'POST') {
@@ -85,7 +88,11 @@ export function createAppServer({ config, getLibrary, rescan, analyser, store, r
       if (url.pathname.startsWith('/spectrogram/') && request.method === 'GET') {
         const clip = getLibrary().get(url.pathname.split('/').at(-1))
         if (!clip) return json(response, 404, { error: 'Recording not found' })
-        const path = await spectrogram(clip, config.dataRoot)
+        if (!spectrograms.has(clip.id)) {
+          const pending = spectrogram(clip, config.dataRoot).finally(() => spectrograms.delete(clip.id))
+          spectrograms.set(clip.id, pending)
+        }
+        const path = await spectrograms.get(clip.id)
         response.writeHead(200, { 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=31536000, immutable' })
         return await pipeline(createReadStream(path), response)
       }
@@ -129,13 +136,18 @@ async function spectrogram(clip, dataRoot) {
   try {
     await stat(output)
     return output
-  } catch {}
+  } catch (error) { if (error.code !== 'ENOENT') throw error }
   await mkdir(directory, { recursive: true })
-  await execFileAsync('ffmpeg', [
-    '-v', 'error', '-y', '-i', clip.path,
-    '-lavfi', 'showspectrumpic=s=1200x360:legend=disabled:color=magma:scale=log:gain=5:drange=80:stop=12000',
-    '-frames:v', '1', output,
-  ])
+  const temporary = await mkdtemp(join(directory, '.spectrogram-'))
+  try {
+    const staged = join(temporary, 'image.png')
+    await execFileAsync('ffmpeg', [
+      '-v', 'error', '-y', '-i', clip.path,
+      '-lavfi', 'showspectrumpic=s=1200x360:legend=disabled:color=magma:scale=log:gain=5:drange=80:stop=12000',
+      '-frames:v', '1', staged,
+    ], { timeout: 60_000, killSignal: 'SIGKILL' })
+    await rename(staged, output)
+  } finally { await rm(temporary, { recursive: true, force: true }) }
   return output
 }
 
