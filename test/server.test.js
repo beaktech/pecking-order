@@ -64,3 +64,32 @@ test('bootstrap excludes reviews belonging to a different source archive', async
   const result = await (await fetch(`http://127.0.0.1:${server.address().port}/api/bootstrap`)).json()
   assert.deepEqual(result.reviews, { current: { decision: 'keep' } })
 })
+
+test('cancelling a media stream does not log a server error or break later requests', async t => {
+  const { mkdtemp, open, rm } = await import('node:fs/promises')
+  const { tmpdir } = await import('node:os')
+  const { join } = await import('node:path')
+  const { get } = await import('node:http')
+  const root = await mkdtemp(join(tmpdir(), 'pecking-order-cancel-'))
+  t.after(() => rm(root, { recursive: true, force: true }))
+  const path = join(root, 'large.wav')
+  const file = await open(path, 'w')
+  await file.truncate(64 * 1024 * 1024)
+  await file.close()
+  const errors = t.mock.method(console, 'error', () => {})
+  const server = createAppServer({ config: {}, store: { reviews: {} }, getLibrary: () => ({ get: () => ({ path }), summary: () => ({ clipCount: 1 }) }) })
+  await new Promise((resolve, reject) => { server.once('error', reject); server.listen(0, '127.0.0.1', resolve) })
+  t.after(() => new Promise(resolve => server.close(resolve)))
+  const base = `http://127.0.0.1:${server.address().port}`
+  const closed = new Promise(resolve => server.once('request', (_request, response) => response.once('close', resolve)))
+  await new Promise((resolve, reject) => {
+    const request = get(`${base}/media/clip`, response => {
+      response.once('data', () => { request.destroy(); resolve() })
+    })
+    request.once('error', reject)
+  })
+  await closed
+  await new Promise(resolve => setImmediate(resolve))
+  assert.equal((await fetch(`${base}/api/bootstrap`)).status, 200)
+  assert.equal(errors.mock.callCount(), 0)
+})

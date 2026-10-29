@@ -98,6 +98,8 @@ export function createAppServer({ config, getLibrary, rescan, analyser, store, r
       }
       return await staticFile(response, config.projectRoot, url.pathname)
     } catch (error) {
+      // Seeking or navigating away normally cancels an in-flight media stream.
+      if (response.destroyed && ['ERR_STREAM_PREMATURE_CLOSE', 'ECONNRESET'].includes(error.code)) return
       console.error(error)
       if (response.headersSent || response.destroyed) return response.destroy()
       return json(response, error.statusCode || 500, { error: error.message })
