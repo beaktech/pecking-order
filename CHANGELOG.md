@@ -4,6 +4,14 @@
 
 First public release of **Pecking Order**, by Beak Tech. Release files are prepared locally; nothing has been published to npm or GitHub.
 
+### Health review fixes
+
+- Reject foreign Host/Origin requests to the local app, limit JSON request bodies and validate review values before saving. Escape stored decision text when rendering cards.
+- Neutralise formula-like CSV text while preserving numeric coordinates and measurements.
+- Publish review and upload-default changes only after successful disk writes; failed saves cannot silently become active or leak into later saves.
+- Share overlapping rescans and spectrogram requests, publish caches atomically from unique temporary folders, and clean up failed generation.
+- Add contributor guidance and a private security-reporting policy. Clarify supported runtime maintenance and one-process-per-workspace use.
+
 ### Recording sources and setup
 
 - Import standard BirdNET-Go audio exports, including duration suffixes and WAV, FLAC, MP3, M4A, Opus and Ogg files.

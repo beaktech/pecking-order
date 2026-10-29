@@ -14,7 +14,7 @@ It **never changes original recordings or uploads to Xeno-canto**. BirdNET ident
 
 **Pre-release:** this package has not been published to npm yet. Use the source checkout or local-package preview below for now. The `npx pecking-order` examples describe the intended published release.
 
-You need **Node.js 22.13 or newer**, npm, and **FFmpeg plus FFprobe** on PATH. There are no npm runtime dependencies. Check `node --version`, `ffmpeg -version` and `ffprobe -version` in the terminal you will use.
+You need **Node.js 22.13 or newer**, npm, and **FFmpeg plus FFprobe** on PATH. Use the latest security patch of a maintained Node LTS release and keep FFmpeg updated; 22.13 is the compatibility floor, not the recommended patch level. There are no npm runtime dependencies. Check `node --version`, `ffmpeg -version` and `ffprobe -version` in the terminal you will use.
 
 | System | Audio tools |
 | --- | --- |
@@ -104,7 +104,7 @@ Local tests and installed-package checks pass on macOS with Node 22.13.0 and 24.
 
 The app opens at `http://127.0.0.1:4317` and is available only on this computer. Use `--port NUMBER` to change the port or `--no-open` to open the printed URL yourself. **Show file** requests Finder's file selection on macOS or the containing folder on Windows/Linux, and always offers a copyable path. Headless systems work with the printed URL and path fallback.
 
-Exports go into a new `exports/xeno-canto-*/` folder with WAV files, `xeno-canto-metadata.csv` and a Pecking Order checklist. The CSV is a preparation manifest, not a verified Xeno-canto batch-upload template or an automated submission. The preparation checks are local prompts, not a validation of Xeno-canto’s current upload form. It includes original source paths for your reference. Review what you share and choose a recording licence when uploading to Xeno-canto yourself.
+Exports go into a new `exports/xeno-canto-*/` folder with WAV files, `xeno-canto-metadata.csv` and a Pecking Order checklist. The CSV is a preparation manifest, not a verified Xeno-canto batch-upload template or an automated submission. The preparation checks are local prompts, not a validation of Xeno-canto’s current upload form. It includes original source paths for your reference. Formula-like text in the CSV is prefixed with an apostrophe to prevent spreadsheet evaluation. Review what you share and choose a recording licence when uploading to Xeno-canto yourself.
 
 WAV export applies no analysis filter or further lossy compression. Converting a lossy source to WAV cannot restore lost detail. Files are named with species, date, time and a recording ID; failed exports remove temporary output and preserve previous exports.
 
@@ -125,7 +125,7 @@ On first launch, `config/station.local.json` is created **inside the folder wher
 
 If the recording time zone is missing, the available setup information is saved and an error explains how to confirm `sourceTimezone`. Pecking Order never guesses it from this computer's display time zone. The `timezone` field controls display, date filters and exports, and defaults to this computer's zone. Ambiguous or nonexistent local times around daylight-saving changes are reported and excluded.
 
-Use `--config PATH` for another JSON config. This changes which settings file is read; **data and exports still belong to the current working folder**. Separate review folders keep stations' settings and reviews separate. Paths in a config resolve beside that file; CLI and environment paths resolve from the working folder.
+Use `--config PATH` for another JSON config. This changes which settings file is read; **data and exports still belong to the current working folder**. Separate review folders keep stations' settings and reviews separate. Run only one Pecking Order process per review folder; multiple browser tabs can use that process. Separate processes do not coordinate state writes. Paths in a config resolve beside that file; CLI and environment paths resolve from the working folder.
 
 Archive path precedence is `--archive PATH`, then `PECKING_ORDER_ARCHIVE`, then the config's `archiveRoot`. Other overrides are:
 
@@ -158,6 +158,8 @@ These files belong to your review folder, never the installed package or npm cac
 ## Development
 
 Run `npm test` in the source checkout. `npm run test:package` packs and installs the app offline in temporary directories, checks package contents and runs both source workflows from the installed package (Go only on native Windows). Tests use temporary fixtures and generated audio, never real station recordings or databases. The runtime uses Node's standard library and has no npm dependencies.
+
+There is no compilation step or configured linter, formatter or type checker. The offline package check is the release build check. See [CONTRIBUTING.md](CONTRIBUTING.md) for the repository map, contribution workflow and regression-test guidance, and [SECURITY.md](SECURITY.md) to report vulnerabilities privately.
 
 ## Credits and licence
 

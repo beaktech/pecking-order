@@ -12,7 +12,9 @@
     "config/*.example.json",
     "CHANGELOG.md",
     "docs/screenshot.png",
-    "docs/birdnet-pi-windows.md"
+    "docs/birdnet-pi-windows.md",
+    "CONTRIBUTING.md",
+    "SECURITY.md"
   ],
   "type": "module",
   "engines": {
