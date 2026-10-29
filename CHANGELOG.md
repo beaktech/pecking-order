@@ -10,7 +10,6 @@ First public release of **Pecking Order**, by Beak Tech. The package has not yet
 - Preserve unsaved station-detail edits when a recording review refreshes the preparation screen.
 - Remove unused review mutation and batch-analysis methods; tests use the production save path.
 - Add a community code of conduct.
-
 - Reject foreign Host/Origin requests to the local app, limit JSON request bodies and validate review values before saving. Escape stored decision text when rendering cards.
 - Neutralise formula-like CSV text while preserving numeric coordinates and measurements.
 - Publish review and upload-default changes only after successful disk writes; failed saves cannot silently become active or leak into later saves.
