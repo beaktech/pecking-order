@@ -91,3 +91,13 @@ test('uses the confirmed review captured at export start even if another tab edi
   assert.equal(csv.includes('Edited during export'), false)
   assert.equal(csv.match(/Original review/g).length, 2)
 })
+
+
+test('CSV neutralises spreadsheet formulas while preserving signed numeric metadata', () => {
+  for (const value of ['=1+1', '+SUM(1,2)', '-SUM(1,2)', '@SUM(1,2)', '  =1+1', '\t=1+1', '\r=1+1', '\n=1+1']) {
+    assert.equal(toCsv([{ remarks: value }]), `"remarks"\n"'${value}"\n`)
+  }
+  for (const value of [-1.5, '-1.5', '+12', '-1e-3', 0, 'Great Tit', 'A "clear", close call']) {
+    assert.equal(toCsv([{ value }]), `"value"\n"${String(value).replaceAll('"', '""')}"\n`)
+  }
+})

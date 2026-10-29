@@ -64,10 +64,17 @@ export async function exportSelections({ ids, library, store, config }) {
 export function toCsv(rows) {
   if (!rows.length) return ''
   const headers = Object.keys(rows[0])
-  const quote = (value) => `"${String(value ?? '').replaceAll('"', '""')}"`
+  const quote = (value) => {
+    let text = String(value ?? '')
+    // CSV quoting only escapes delimiters: spreadsheets still evaluate formulas.
+    // Preserve signed numbers (coordinates and measurements) as numbers.
+    const number = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(text.trim())
+    if (!number && /^(?:[\t\r\n]|\s*[=+@-])/.test(text)) text = `'${text}`
+    return `"${text.replaceAll('"', '""')}"`
+  }
   return `${headers.map(quote).join(',')}\n${rows.map((row) => headers.map((header) => quote(row[header])).join(',')).join('\n')}\n`
 }
 
 function exportNotes(count) {
-  return `Pecking Order — Xeno-canto preparation export\n\n${count} lossless WAV recording(s) are included. The archive originals were not modified.\n\nBefore uploading:\n- Listen to each complete recording again.\n- Confirm the identification against current IOC taxonomy.\n- Check foreground and background species.\n- Check the public location name and verify coordinates.\n- Describe any filtering or other processing truthfully. These WAV files were decoded from the source recordings without filtering. Converting a lossy source (such as MP3) to WAV does not restore lost detail.\n- Choose your Xeno-canto licence during upload.\n\nThe CSV is a preparation manifest, not an automated upload or a verified Xeno-canto batch template. Blank fields still need checking before submission. Choose the sharing licence on Xeno-canto.\n`
+  return `Pecking Order — Xeno-canto preparation export\n\n${count} lossless WAV recording(s) are included. The archive originals were not modified.\n\nBefore uploading:\n- Listen to each complete recording again.\n- Confirm the identification against current IOC taxonomy.\n- Check foreground and background species.\n- Check the public location name and verify coordinates.\n- Describe any filtering or other processing truthfully. These WAV files were decoded from the source recordings without filtering. Converting a lossy source (such as MP3) to WAV does not restore lost detail.\n- Choose your Xeno-canto licence during upload.\n\nThe CSV is a preparation manifest, not an automated upload or a verified Xeno-canto batch template. Formula-like text is prefixed with an apostrophe to prevent spreadsheet evaluation. Blank fields still need checking before submission. Choose the sharing licence on Xeno-canto.\n`
 }
