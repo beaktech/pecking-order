@@ -3,14 +3,19 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
   <title>Pecking Order</title>
+  <link rel="icon" type="image/png" href="/logo.png">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
   <header class="topbar">
-    <div>
-      <p class="eyebrow">By Beak Tech</p>
-      <h1>Pecking Order</h1>
+    <div class="brand">
+      <img class="brand-logo" src="/logo.png" alt="" width="128" height="114">
+      <div>
+        <p class="eyebrow">Beak Tech</p>
+        <h1>Pecking Order</h1>
+      </div>
     </div>
     <div class="top-actions">
       <span id="archiveStatus" class="archive-status">Indexing archive</span>
@@ -28,8 +33,10 @@
         </div>
 
         <label for="speciesInput">Species</label>
-        <input id="speciesInput" name="speciesName" list="speciesList" autocomplete="off" placeholder="Common or scientific name" required>
-        <datalist id="speciesList"></datalist>
+        <div class="species-picker">
+          <input id="speciesInput" name="speciesName" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="speciesList" autocomplete="off" spellcheck="false" placeholder="Common or scientific name" required>
+          <button id="speciesToggle" class="species-toggle" type="button" aria-label="Show species" aria-controls="speciesList" aria-expanded="false">▾</button>
+        </div>
 
         <div class="date-grid">
           <div>
@@ -95,6 +102,11 @@
       <div id="recordingGrid" class="recording-grid"></div>
     </section>
   </main>
+
+  <div id="speciesMenu" class="species-menu" hidden>
+    <div id="speciesList" role="listbox" aria-label="Species"></div>
+    <p id="speciesMatches" class="species-matches" role="status" hidden></p>
+  </div>
 
   <dialog id="reviewDialog">
     <form id="reviewForm" method="dialog">

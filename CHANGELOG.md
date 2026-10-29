@@ -11,12 +11,14 @@ First public release of **Pecking Order**, by Beak Tech. Release files are prepa
 - Read Pi databases **read-only**, one row at a time with `.iterate()`. Missing or unreadable databases name the expected `BirdNET-Pi/scripts/birds.db` file. There is **no `BirdDB.txt` fallback**.
 - Raise the minimum Node version from 20.19 to **22.13** for built-in SQLite without an npm dependency. Suppress only the specific SQLite experimental warning; other warnings remain visible.
 - Report metadata conflicts, unmatched files and ambiguous local times. Explain that missing older Pi audio is normal because BirdNET-Pi deletes recordings while retaining detection records.
-- Save first-run station settings, import literal native-config coordinates without executing configuration, and keep recording time zones separate from display time zones. Use native common names or explicit labels, with scientific-name fallback; no BirdNET labels or models are bundled.
-
-- Add an attributed offline IOC English-name fallback for species without source common names.
+- Save first-run station settings, import literal native-config coordinates without executing configuration, and keep recording time zones separate from display time zones. Use native common names or explicit labels, with a bundled IOC English-name fallback when metadata has no common name. Retain scientific names for unknown species; no BirdNET labels or models are bundled. Include the lookup data’s CC BY 3.0 attribution separately from the MIT application licence.
 
 ### Review and export
 
+- Show common and scientific names together in the species picker, results and review heading; search by either name.
+- Anchor the searchable species picker above the page, with mouse, touch and keyboard selection.
+- Redesign recording cards with integrated audio controls, icon-led metrics, clearer species names and orange keep actions.
+- Follow playback with a spectrogram playhead and seek by clicking, tapping, dragging or using arrow keys.
 - Search and rank recordings, inspect spectrograms, listen, keep/reject and confirm identifications manually.
 - Score candidates using BirdNET confidence, estimated SNR, peak level and clipping risk. The analysis filter changes neither originals nor exported audio.
 - Export a separate WAV/CSV/checklist folder for manual Xeno-canto preparation. Never upload, alter original recordings or silently omit missing selections. Failed exports leave previous exports intact.
@@ -27,7 +29,7 @@ First public release of **Pecking Order**, by Beak Tech. Release files are prepa
 - Use `pecking-order` for the package and CLI and `PECKING_ORDER_ARCHIVE` for the archive environment variable.
 - Request the browser and file manager on macOS, Windows and Linux, with copyable URL/path fallbacks. Treat numeric Explorer exit codes, including 1, as requested launches.
 - Check FFmpeg and FFprobe at startup, with platform-specific installation hints. Document the WSL/Linux-filesystem route for native Pi filenames on Windows.
-- Add an MIT licence with **Beak Tech Community Interest Company** as copyright holder and package author. Use **By Beak Tech** above the application title.
+- Add an MIT licence with **Beak Tech Community Interest Company** as copyright holder and package author. Show the Beak Tech logo and name above the application title.
 - Include a public README, synthetic demonstration screenshot, source compatibility references and credits. Restrict npm contents to application files, neutral examples and public documentation.
 - Prepare version **0.1.0** for publication by removing the temporary `private` flag. Publication remains a separate owner action.
 - Add GitHub Actions for macOS, Windows and Linux on Node 22.13.0, latest 22 and 24, including offline package checks. Hosted jobs have not run before the initial repository push.

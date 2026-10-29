@@ -58,7 +58,7 @@ Use `UTC` if that process runs in UTC. The inspected BirdNET-Go source writes pr
 
 Supported filenames include `parus_major_72p_20260515T120000Z.wav` and `parus_major_72p_20260515T120000Z_15s.wav`, with WAV, FLAC, MP3, M4A, Opus or Ogg extensions.
 
-The audio folder is sufficient. For common names, Pecking Order optionally reads `birdnet.db` beside that folder; use `--database PATH` for another location. Legacy `notes` records and combined names stored in v2 `labels` are understood. Scientific-only metadata falls back to scientific names. An explicit `labelsPath` in your config can supply or override names; no BirdNET label files are bundled.
+The audio folder is sufficient. For common names, Pecking Order optionally reads `birdnet.db` beside that folder; use `--database PATH` for another location. Legacy `notes` records and combined names stored in v2 `labels` are understood. When metadata has no common name, an offline English-name lookup from the IOC World Bird List supplies one where available. Both common and scientific names appear in the species picker, results and review heading. An explicit `labelsPath` in your config can supply or override names. Unrecognised scientific names remain unchanged; no BirdNET label files are bundled. The lookup data is CC BY 3.0, with its source and credits in [resources/ATTRIBUTION.md](resources/ATTRIBUTION.md); application code remains MIT-licensed.
 
 ## BirdNET-Pi quick start
 
@@ -95,7 +95,7 @@ Local tests and installed-package checks pass on macOS with Node 22.13.0 and 24.
 ## Review and export
 
 1. Choose a species, dates, confidence threshold and shortlist size.
-2. Listen to the recordings and inspect their spectrograms.
+2. Listen to the recordings and inspect their spectrograms. The white playhead follows playback; click, tap or drag on a spectrogram to seek. Seeking preserves playback or pause. With the spectrogram focused, arrow keys move one second (Shift + arrow: a tenth of a second); Home and End jump to the start and end.
 3. **Keep** or **Reject** each recording. Open **⋯** on a kept recording to edit its details.
 4. Check species, location, coordinates, recording equipment and other submission details. Confirm the identification manually.
 5. Choose **Export kept**. Every selected recording must be confirmed before export succeeds.
