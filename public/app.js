@@ -170,7 +170,7 @@ function renderResults() {
 function card(item) {
   const review = item.review || {}
   const metrics = item.analysis || {}
-  return `<article class="recording-card" data-id="${item.id}" data-decision="${review.decision || ''}">
+  return `<article class="recording-card" data-id="${item.id}" data-decision="${escapeHtml(review.decision || '')}">
     <div class="spectrogram-player" role="slider" tabindex="0" aria-label="Playback position for ${escapeHtml(speciesLabel(item))}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" title="Click or drag to seek. Arrow keys move one second; Shift + arrow moves a tenth of a second.">
       <img class="spectrogram" src="/spectrogram/${item.id}" alt="Spectrogram for ${escapeHtml(speciesLabel(item))}" loading="lazy" draggable="false">
       <span class="kept-badge" ${review.decision === 'keep' ? '' : 'hidden'}>${icon('check')} Kept</span>

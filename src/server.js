@@ -15,6 +15,10 @@ const TYPES = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=
 export function createAppServer({ config, getLibrary, rescan, analyser, store, reveal = revealFile }) {
   return createServer(async (request, response) => {
     try {
+      if (!isLocalRequest(request)) return json(response, 403, { error: 'Only requests from this Pecking Order window are allowed.' })
+      response.setHeader('X-Content-Type-Options', 'nosniff')
+      response.setHeader('X-Frame-Options', 'DENY')
+      response.setHeader('Cross-Origin-Resource-Policy', 'same-origin')
       const url = new URL(request.url, 'http://localhost')
       if (url.pathname === '/api/bootstrap' && request.method === 'GET') {
         const library = getLibrary()
@@ -190,10 +194,37 @@ async function staticFile(response, projectRoot, pathname) {
   }
 }
 
+// Loopback binding alone does not reject foreign websites or DNS rebinding.
+function isLocalRequest(request) {
+  const port = request.socket.localPort
+  const hosts = new Set([`127.0.0.1:${port}`, `localhost:${port}`, `[::1]:${port}`])
+  if (port === 80) for (const host of ['127.0.0.1', 'localhost', '[::1]']) hosts.add(host)
+  const host = request.headers.host
+  if (!hosts.has(host)) return false
+  if (request.headers.origin !== undefined && request.headers.origin !== `http://${host}`) return false
+  return !['cross-site', 'same-site'].includes(request.headers['sec-fetch-site'])
+}
+
 async function body(request) {
+  const maximum = 1024 * 1024
   const chunks = []
-  for await (const chunk of request) chunks.push(chunk)
-  return JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}')
+  let size = 0
+  // Consume without destroying the stream so a useful 413 reaches the caller.
+  for await (const chunk of request.iterator({ destroyOnReturn: false })) {
+    size += chunk.length
+    if (size > maximum) {
+      request.resume()
+      throw Object.assign(new Error('Request body exceeds 1 MiB.'), { statusCode: 413 })
+    }
+    chunks.push(chunk)
+  }
+  let parsed
+  try { parsed = JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}') }
+  catch { throw Object.assign(new Error('Request body must be valid JSON.'), { statusCode: 400 }) }
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    throw Object.assign(new Error('Request body must be a JSON object.'), { statusCode: 400 })
+  }
+  return parsed
 }
 
 function json(response, status, value) {
