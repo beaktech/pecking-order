@@ -82,11 +82,11 @@ test('preparation API saves station details, reports only kept clips, and rolls 
   assert.deepEqual(data.clips[0].checks,[])
   assert.equal((await put({latitude:'bad'})).status,400)
   const previous=store.uploadDefaults[defaultsKey(config)]
-  const save=store.save.bind(store)
-  store.save=async()=>{throw new Error('Synthetic disk failure')}
+  const save=store.writeState.bind(store)
+  store.writeState=async()=>{throw new Error('Synthetic disk failure')}
   assert.equal((await put({...saved,device:'Must not persist'})).status,500)
   assert.deepEqual(store.uploadDefaults[defaultsKey(config)],previous)
-  store.save=save
+  store.writeState=save
   assert.equal((await new Store(config.dataRoot).load()).uploadDefaults[defaultsKey(config)].device,'New recorder')
 })
 

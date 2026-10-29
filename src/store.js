@@ -35,16 +35,39 @@ export class Store {
     return this.reviews[id]
   }
 
-  async save() {
-    // A failed write must reach its caller without poisoning subsequent saves.
-    this.saveQueue = this.saveQueue.catch(() => {}).then(async () => {
-      await mkdir(dirname(this.path), { recursive: true })
-      const temporary = `${this.path}.tmp`
-      await writeFile(temporary, JSON.stringify({ schemaVersion: 1, metricsVersion: SCORING_VERSION, metrics: this.metrics, reviews: this.reviews, uploadDefaults: this.uploadDefaults }, null, 2))
-      await rename(temporary, this.path)
+  saveReview(id, patch) {
+    const clean = validateReview(patch)
+    return this.enqueue(async () => {
+      const review = { ...(this.reviews[id] || {}), ...clean, updatedAt: new Date().toISOString() }
+      await this.writeState({ reviews: { ...this.reviews, [id]: review } })
+      this.reviews[id] = review
+      return review
     })
+  }
+
+  saveUploadDefaults(key, details) {
+    const saved = { ...details }
+    return this.enqueue(async () => {
+      await this.writeState({ uploadDefaults: { ...this.uploadDefaults, [key]: saved } })
+      this.uploadDefaults[key] = saved
+    })
+  }
+
+  save() { return this.enqueue(() => this.writeState()) }
+
+  enqueue(operation) {
+    // Serialise durable changes; a failure must not poison later operations.
+    this.saveQueue = this.saveQueue.catch(() => {}).then(operation)
     return this.saveQueue
   }
+
+  async writeState(changes = {}) {
+    await mkdir(dirname(this.path), { recursive: true })
+    const temporary = `${this.path}.tmp`
+    await writeFile(temporary, JSON.stringify({ schemaVersion: 1, metricsVersion: SCORING_VERSION, metrics: this.metrics, reviews: this.reviews, uploadDefaults: this.uploadDefaults, ...changes }, null, 2))
+    await rename(temporary, this.path)
+  }
+
 }
 
 function validateReview(patch) {

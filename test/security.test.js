@@ -68,3 +68,17 @@ test('rejects malformed, non-object, oversized and invalid review payloads witho
   assert.equal(valid.status, 200)
   assert.equal((await new Store(f.root).load()).reviews.clip.confirmed, true)
 })
+
+test('a review API write failure leaves both the live review and saved review unchanged', async t => {
+  const f = await fixture(t)
+  await f.store.saveReview('clip', { decision: 'reject', confirmed: false })
+  const before = { ...f.store.reviews.clip }
+  const goodPath = f.store.path
+  f.store.path = join(f.root, 'state.json', 'not-a-directory')
+  const response = await fetch(`${f.base}/api/reviews/clip`, { method: 'PATCH', body: JSON.stringify({ decision: 'keep', confirmed: true }) })
+  assert.equal(response.status, 500)
+  assert.deepEqual(f.store.reviews.clip, before)
+  f.store.path = goodPath
+  await f.store.save()
+  assert.deepEqual((await new Store(f.root).load()).reviews.clip, before)
+})

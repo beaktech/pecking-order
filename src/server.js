@@ -40,16 +40,7 @@ export function createAppServer({ config, getLibrary, rescan, analyser, store, r
       if (url.pathname === '/api/preparation/defaults' && request.method === 'PUT') {
         const details = validateStationDefaults(await body(request))
         const key = defaultsKey(config)
-        const previous = store.uploadDefaults[key]
-        store.uploadDefaults[key] = details
-        try { await store.save() }
-        catch (error) {
-          if (store.uploadDefaults[key] === details) {
-            if (previous === undefined) delete store.uploadDefaults[key]
-            else store.uploadDefaults[key] = previous
-          }
-          throw error
-        }
+        await store.saveUploadDefaults(key, details)
         return json(response, 200, { defaults: stationDefaults(config, getLibrary(), store) })
       }
       if (url.pathname === '/api/scan' && request.method === 'POST') {
@@ -78,8 +69,7 @@ export function createAppServer({ config, getLibrary, rescan, analyser, store, r
       if (url.pathname.startsWith('/api/reviews/') && request.method === 'PATCH') {
         const id = url.pathname.split('/').at(-1)
         if (!getLibrary().get(id)) return json(response, 404, { error: 'Recording not found' })
-        const review = store.updateReview(id, await body(request))
-        await store.save()
+        const review = await store.saveReview(id, await body(request))
         return json(response, 200, review)
       }
       if (url.pathname === '/api/export' && request.method === 'POST') {
